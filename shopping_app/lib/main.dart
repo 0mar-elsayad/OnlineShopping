@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_app/screens/Login.dart';
+import 'package:shopping_app/screens/forgotpass.dart';
 import 'package:shopping_app/screens/signup.dart';
 
 void main() {
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SignupScreen(),
+      home: const Forgotpassword(),
     );
   }
 }
