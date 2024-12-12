@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_app/screens/Home.dart';
 import 'package:shopping_app/screens/Login.dart';
 import 'package:shopping_app/screens/forgotpass.dart';
+import 'package:shopping_app/screens/search.dart';
 import 'package:shopping_app/screens/signup.dart';
 import 'package:shopping_app/screens/bottombar.dart';
 void main() {
