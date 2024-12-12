@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shopping_app/screens/Login.dart';
 import 'package:shopping_app/screens/forgotpass.dart';
 import 'package:shopping_app/screens/signup.dart';
-
+import 'package:shopping_app/screens/bottombar.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const Forgotpassword(),
+      home: const BottomBar(),
     );
   }
 }
