@@ -32,7 +32,30 @@ class Cartwidget extends StatelessWidget {
                     style: TextStyle(fontSize: 18, color: Colors.blue)),
               ],
             ),
-          ],
+          
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+              Container(
+                child: Icon(Icons.add),
+                color: Colors.lightBlue[300],
+                 decoration : BoxDecoration(borderRadius: BorderRadius.circular(16))
+            
+              ),
+              Text('2')
+              
+              , Container(
+            
+                child: Icon(Icons.remove),
+                color: Colors.white,
+                 decoration : BoxDecoration(borderRadius: BorderRadius.circular(16))
+            
+              )
+            
+            ],),
+          )],
         ),
       ),
     );

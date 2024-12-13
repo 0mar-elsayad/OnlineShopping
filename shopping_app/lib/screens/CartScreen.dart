@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_app/Widget/Elevatedbotton.dart';
 import '../Widget/Cartwidget.dart';
 
 class CartScreen extends StatefulWidget {
@@ -21,12 +22,29 @@ class _CartScreenState extends State<CartScreen> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ), // AppBar
-      body: ListView.builder(
-        itemCount: 4, // 4 items in cart
-        itemBuilder: (context, index) {
-          return Cartwidget(); // Reuse Cartwidget
-        },
+      body: Column(
+        children: [
+         ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: 4, // 4 items in cart
+          itemBuilder: (context, index) {
+            return Cartwidget(); // Reuse Cartwidget
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('50000.00',style: TextStyle(fontSize: 22),),
+              ElevatedWidget(title: 'check out', color: Colors.blue, function: (){},)
+            ],
+          ),
+        )
+        ]
       ), // ListView.builder
+      
     );
   }
 }

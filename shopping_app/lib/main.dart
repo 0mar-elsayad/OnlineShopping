@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_app/screens/Add_product.dart';
 import 'package:shopping_app/screens/Home.dart';
 import 'package:shopping_app/screens/Login.dart';
+import 'package:shopping_app/screens/Product_detaills.dart';
 import 'package:shopping_app/screens/forgotpass.dart';
+import 'package:shopping_app/screens/profileScreen.dart';
 import 'package:shopping_app/screens/search.dart';
 import 'package:shopping_app/screens/signup.dart';
 import 'package:shopping_app/screens/bottombar.dart';
@@ -37,7 +40,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const BottomBar(),
+      home: Productdetaills(),
     );
   }
 }
