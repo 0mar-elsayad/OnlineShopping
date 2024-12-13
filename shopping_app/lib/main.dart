@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shopping_app/screens/Add_product.dart';
 import 'package:shopping_app/screens/Home.dart';
@@ -8,8 +9,13 @@ import 'package:shopping_app/screens/profileScreen.dart';
 import 'package:shopping_app/screens/search.dart';
 import 'package:shopping_app/screens/signup.dart';
 import 'package:shopping_app/screens/bottombar.dart';
-void main() {
-  runApp(const MyApp());
+import 'firebase_options.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -40,7 +46,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Productdetaills(),
+      home: SignupScreen(),
     );
   }
 }

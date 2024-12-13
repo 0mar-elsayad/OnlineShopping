@@ -31,10 +31,10 @@ return SafeArea(
         ,Divider(color: Colors.grey[300],thickness: 1,)  
         , ListtileWidget(icon: Icons.add, title: 'Add Product', function: (){
 
-          Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Addproduct()),
-            );
+         Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Addproduct()),
+          );
 
         },) 
         ,SizedBox(height: 50,)

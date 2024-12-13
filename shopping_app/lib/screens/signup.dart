@@ -1,4 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shopping_app/screens/bottombar.dart';
+import 'package:shopping_app/screens/Login.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -8,6 +12,55 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+
+  bool isLoading=false;
+
+final name = TextEditingController();
+final email = TextEditingController();
+final password = TextEditingController();
+
+void signup() async {
+  try {
+    setState(() {
+      isLoading = true;
+    });
+
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email.text,
+      password: password.text,
+    );
+
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => BottomBar(),
+      ),
+    );
+  } on FirebaseException catch (error) {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error.toString()),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  } finally {
+    setState(() {
+      isLoading = false; 
+    });
+  }
+}
+
+@override
+  void dispose() {
+    name.dispose();
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+
+
   final formkey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -35,6 +88,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     children: [
                       TextFormField(
+                          controller: name,
+
+
                         validator: (value) {
                           if (value!.isEmpty) {
                             return 'Please enter a valid name!';
@@ -54,6 +110,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         height: 20,
                       ),
                       TextFormField(
+                          controller: email,
+
+
                         validator: (value) {
                           if (value!.isEmpty || !value.contains('@')) {
                             return 'Please enter a valid email adress';
@@ -73,6 +132,10 @@ class _SignupScreenState extends State<SignupScreen> {
                         height: 20,
                       ),
                       TextFormField(
+                        controller: password, 
+
+
+
                         validator: (value) {
                           if (value!.isEmpty || value.length < 7) {
                             return 'Password should be at least 7 characters';
@@ -99,15 +162,23 @@ class _SignupScreenState extends State<SignupScreen> {
                             backgroundColor: Colors.blue[900]),
                         onPressed: () {
                           formkey.currentState!.save();
-                          if (formkey.currentState!.validate()) {}
+                          if (formkey.currentState!.validate()) {
+                            signup();
+                          }
                         },
-                        child: Text(
+                        child:isLoading?CircularProgressIndicator(): Text(
                           'Sign up',
                           style: TextStyle(color: Colors.white),
                         ))),
                 SizedBox(height: 30),
                 Text('already have an account?'),
-                TextButton(onPressed: () {}, child: Text('Login'))
+                TextButton(onPressed: () {
+                  Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => LoginScreen(),
+                ),
+              );
+                }, child: Text('Login'))
               ],
             ),
           ),
@@ -116,3 +187,4 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
+

@@ -21,30 +21,38 @@ class _CartScreenState extends State<CartScreen> {
           'My Cart',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-      ), // AppBar
+      ),
       body: Column(
         children: [
-         ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: 4, // 4 items in cart
-          itemBuilder: (context, index) {
-            return Cartwidget(); // Reuse Cartwidget
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('50000.00',style: TextStyle(fontSize: 22),),
-              ElevatedWidget(title: 'check out', color: Colors.blue, function: (){},)
-            ],
+          Expanded(
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 4, // 4 items in cart
+              itemBuilder: (context, index) {
+                return Cartwidget(); // Reuse Cartwidget
+              },
+            ),
           ),
-        )
-        ]
-      ), // ListView.builder
-      
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '50000.00',
+                  style: TextStyle(fontSize: 22),
+                ),
+                ElevatedWidget(
+                  title: 'check out',
+                  color: Colors.blue,
+                  function: () {},
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
