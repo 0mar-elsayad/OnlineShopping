@@ -9,6 +9,8 @@ import 'package:shopping_app/screens/profileScreen.dart';
 import 'package:shopping_app/screens/search.dart';
 import 'package:shopping_app/screens/signup.dart';
 import 'package:shopping_app/screens/bottombar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +48,30 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: SignupScreen(),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error'),
+            );
+          }
+          if (snapshot.data == null) {
+            return SignupScreen();
+          }
+          if (snapshot.hasData) {
+            return BottomBar();
+          }
+          return Center(
+            child: Text('...'),
+          );
+        },
+      ),
     );
   }
 }

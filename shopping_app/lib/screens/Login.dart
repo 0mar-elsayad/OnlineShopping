@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shopping_app/screens/bottombar.dart';
+import 'package:shopping_app/screens/signup.dart';
 
   class LoginScreen extends StatefulWidget {
     const LoginScreen({super.key});
@@ -142,7 +143,13 @@ Widget build(BuildContext context) {
                           ))),
                   SizedBox(height: 30),
                   Text("you don't have an account ?"),
-                  TextButton(onPressed: () {}, child: Text('Signup'))
+                  TextButton(onPressed: () {
+                         Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SignupScreen(),
+                ),
+              );
+                  }, child: Text('Signup'))
                 ],
               ),
             ),
@@ -151,3 +158,4 @@ Widget build(BuildContext context) {
       );
     }
   }
+
