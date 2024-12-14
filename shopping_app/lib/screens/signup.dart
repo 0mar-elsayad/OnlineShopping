@@ -29,6 +29,9 @@ void signup() async {
       email: email.text,
       password: password.text,
     );
+    await FirebaseFirestore
+
+
 
 
     Navigator.of(context).pushReplacement(

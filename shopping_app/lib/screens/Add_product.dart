@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Addproduct extends StatefulWidget {
   const Addproduct({super.key});
@@ -14,7 +15,13 @@ class _AddproductState extends State<Addproduct> {
 File?pickedimage;
 
 void uploadimage()async{
-
+var image =await ImagePicker().pickImage(source: ImageSource.gallery);
+var selected =File(image!.path);
+if(image!=null){
+  setState(() {
+    pickedimage=selected;
+  });
+}
 
 }
 
@@ -127,7 +134,10 @@ void uploadimage()async{
 
                 , SizedBox(height: 30),
 
-                TextButton(onPressed: (){}, child: Text('choose image'))
+                TextButton(onPressed: (){
+                  uploadimage();
+
+                }, child:pickedimage == null ?Text('choose image'):Image.file(pickedimage!)) 
                 
                 , SizedBox(
                     width: double.infinity,

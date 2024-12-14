@@ -21,7 +21,6 @@ class ListtileWidget extends StatelessWidget {
       leading: Icon(icon),
       trailing: IconButton(
         onPressed: () {
-          print("Hello World");
           function();
         },
         icon: Icon(Icons.arrow_forward_ios),
