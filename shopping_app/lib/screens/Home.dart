@@ -88,15 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   }).toList(),
                 ),
               ),
-              // Total Price Display
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  "Total Price: \$$_totalPrice",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
             ],
           ),
         ),

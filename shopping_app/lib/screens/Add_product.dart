@@ -12,151 +12,91 @@ class Addproduct extends StatefulWidget {
 
 class _AddproductState extends State<Addproduct> {
   File? pickedimage;
+  String category = 'iphone'; // Default category
 
+  // Sample list of categories
+  final List<String> categories = ['iPhone', 'Laptop', 'Watch', 'Tablet', 'Accessories'];
+
+  // Function to upload image
   void uploadimage() async {
     var image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    var selected = File(image!.path);
-    setState(() {
-      pickedimage = selected;
-    });
+    if (image != null) {
+      setState(() {
+        pickedimage = File(image.path);
+      });
+    }
   }
 
+  // Form key for validation
   final formkey = GlobalKey<FormState>();
-  String category = 'iphone';
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          body: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
+        body: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 50,
-                ),
-                const Text(
-                  'Shopping-App',
-                  style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Form(
-                  key: formkey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter a valid title';
-                          } else {
-                            return null;
-                          }
-                        },
-                        decoration: const InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green)),
-                          hintText: 'Title',
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey)),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextFormField(
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter a valid description';
-                          } else {
-                            return null;
-                          }
-                        },
-                        decoration: const InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green)),
-                          hintText: ' description',
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey)),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextFormField(
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'enter price';
-                          } else {
-                            return null;
-                          }
-                        },
-                        decoration: const InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green)),
-                          hintText: 'price',
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey)),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                DropdownButtonHideUnderline(
-                    child: DropdownButton(
-                  hint: const Text('Select category'),
-                  onChanged: (value) {
-                    setState(() {
-                      category = value!;
-                    });
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Iphone',
-                      child: Text('Iphone'),
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
+              const Text('Shopping-App', style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 50),
+              Form(
+                key: formkey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      decoration: const InputDecoration(hintText: 'Product Title'),
+                      validator: (value) => value!.isEmpty ? 'Enter a title' : null,
                     ),
-                    DropdownMenuItem(
-                      value: 'Labtop',
-                      child: Text('Labtop'),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      decoration: const InputDecoration(hintText: 'Description'),
+                      validator: (value) => value!.isEmpty ? 'Enter a description' : null,
                     ),
-                    DropdownMenuItem(
-                      value: 'Watch',
-                      child: Text('Watch'),
-                    )
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      decoration: const InputDecoration(hintText: 'Price'),
+                      validator: (value) => value!.isEmpty ? 'Enter a price' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    DropdownButton<String>(
+                      value: category,
+                      onChanged: (value) {
+                        setState(() {
+                          category = value!;
+                        });
+                      },
+                      items: categories.map((cat) {
+                        return DropdownMenuItem<String>(
+                          value: cat,
+                          child: Text(cat),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 30),
+                    TextButton(
+                      onPressed: uploadimage,
+                      child: pickedimage == null
+                          ? const Text('Choose Image')
+                          : Image.file(pickedimage!),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formkey.currentState!.validate()) {
+                          // Add product logic
+                        }
+                      },
+                      child: const Text('Add Product'),
+                    ),
                   ],
-                )),
-                const SizedBox(height: 30),
-                TextButton(
-                    onPressed: () {
-                      uploadimage();
-                    },
-                    child: pickedimage == null
-                        ? const Text('choose image')
-                        : Image.file(pickedimage!)),
-                SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[900]),
-                        onPressed: () {
-                          formkey.currentState!.save();
-                          if (formkey.currentState!.validate()) {}
-                        },
-                        child: const Text(
-                          'Upload ',
-                          style: TextStyle(color: Colors.white),
-                        ))),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
-      )),
+      ),
     );
   }
 }

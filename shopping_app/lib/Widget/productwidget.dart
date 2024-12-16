@@ -1,3 +1,5 @@
+// productwidget.dart
+
 import 'package:flutter/material.dart';
 import 'package:shopping_app/model/cart_model.dart';
 import 'package:shopping_app/model/cart_model_list.dart';
@@ -20,26 +22,25 @@ class Productwidget extends StatefulWidget {
 }
 
 class _ProductwidgetState extends State<Productwidget> {
-  int _productCount = 0;
+  int _productCount = 1;
 
   void _addToCart() {
-    if (_productCount > 0) {
-      final CartModel newProduct = CartModel(
-        name: widget.name,
-        price: widget.price,
-        imageUrl: widget.imageUrl,
-        quantity: _productCount,
-      );
+  if (_productCount > 0) {
+    final CartModel newProduct = CartModel(
+      name: widget.name,
+      price: widget.price,
+      imageUrl: widget.imageUrl,
+      quantity: _productCount,
+    );
 
-      final cart = Provider.of<CartModelList>(context, listen: false);
-      cart.add(newProduct);
+    final cart = Provider.of<CartModelList>(context, listen: false);
+    cart.add(newProduct);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${widget.name} added to cart!')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${widget.name} added to cart!')),
+    );
   }
-
+}
   void _incrementCounter() {
     setState(() {
       _productCount++;
@@ -48,7 +49,7 @@ class _ProductwidgetState extends State<Productwidget> {
 
   void _decrementCounter() {
     setState(() {
-      if (_productCount > 0) _productCount--;
+      if (_productCount > 1) _productCount--;
     });
   }
 
