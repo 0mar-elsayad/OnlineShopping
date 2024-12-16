@@ -32,6 +32,31 @@ class Cartwidget extends StatelessWidget {
                     style: TextStyle(fontSize: 18, color: Colors.blue)),
               ],
             ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Increment Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlue[300], // Moved color into decoration
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(Icons.add, color: Colors.white),
+                  ),
+                  Text('2'),
+                  // Decrement Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white, // Moved color into decoration
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(Icons.remove, color: Colors.black),
+                  ),
+                ],
+              ),
+            )
           ],
         ),
       ),

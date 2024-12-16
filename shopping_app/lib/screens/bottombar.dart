@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_app/screens/CartScreen.dart';
 import 'package:shopping_app/screens/Home.dart';
+import 'package:shopping_app/screens/profileScreen.dart';
 import 'package:shopping_app/screens/search.dart';
 
 class BottomBar extends StatefulWidget {
@@ -18,7 +19,7 @@ class _BottomBarState extends State<BottomBar> {
     const HomeScreen(),
      SearchScreen(),
     const CartScreen(),
-    const Scaffold(body: Center(child: Text('Profile Page'))),
+    ProfileScreen()
   ];
 
   void selectedPage(int index) {

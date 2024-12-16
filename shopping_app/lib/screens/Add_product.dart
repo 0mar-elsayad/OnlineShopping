@@ -1,78 +1,32 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:shopping_app/screens/bottombar.dart';
-import 'package:shopping_app/screens/Login.dart';
+import 'dart:io';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+class Addproduct extends StatefulWidget {
+  const Addproduct({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<Addproduct> createState() => _AddproductState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _AddproductState extends State<Addproduct> {
 
-  bool isLoading=false;
+File?pickedimage;
 
-final name = TextEditingController();
-final email = TextEditingController();
-final password = TextEditingController();
-
-void signup() async {
-  try {
-    setState(() {
-      isLoading = true;
-    });
-
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email.text,
-      password: password.text,
-    );
-    await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).set({
-      'name':name.text,
-      'email':email.text,
-      'id':FirebaseAuth.instance.currentUser!.uid,
-      'usercart':[],
-      'userwishlist':[]
-    });
-  
-
-
-
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => BottomBar(),
-      ),
-    );
-  } on FirebaseException catch (error) {
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error.toString()),
-        duration: Duration(seconds: 3),
-      ),
-    );
-  } finally {
-    setState(() {
-      isLoading = false; 
-    });
-  }
+void uploadimage()async{
+var image =await ImagePicker().pickImage(source: ImageSource.gallery);
+var selected =File(image!.path);
+if(image!=null){
+  setState(() {
+    pickedimage=selected;
+  });
 }
 
-@override
-  void dispose() {
-    name.dispose();
-    email.dispose();
-    password.dispose();
-    super.dispose();
-  }
-
-
+}
 
   final formkey = GlobalKey<FormState>();
+  String category ='iphone';
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -99,12 +53,9 @@ void signup() async {
                   child: Column(
                     children: [
                       TextFormField(
-                          controller: name,
-
-
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return 'Please enter a valid name!';
+                            return 'Please enter a valid title';
                           } else {
                             return null;
                           }
@@ -112,7 +63,7 @@ void signup() async {
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
-                          hintText: 'User-Name',
+                          hintText: 'Title',
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
@@ -121,12 +72,9 @@ void signup() async {
                         height: 20,
                       ),
                       TextFormField(
-                          controller: email,
-
-
                         validator: (value) {
-                          if (value!.isEmpty || !value.contains('@')) {
-                            return 'Please enter a valid email adress';
+                          if (value!.isEmpty ) {
+                            return 'Please enter a valid description';
                           } else {
                             return null;
                           }
@@ -134,7 +82,7 @@ void signup() async {
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
-                          hintText: 'Email Address',
+                          hintText: ' description',
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
@@ -143,13 +91,9 @@ void signup() async {
                         height: 20,
                       ),
                       TextFormField(
-                        controller: password, 
-
-
-
                         validator: (value) {
-                          if (value!.isEmpty || value.length < 7) {
-                            return 'Password should be at least 7 characters';
+                          if (value!.isEmpty) {
+                            return 'enter price';
                           } else {
                             return null;
                           }
@@ -157,39 +101,58 @@ void signup() async {
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
-                          hintText: 'Password',
+                          hintText: 'price',
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
                       )
                     ],
+                    
                   ),
                 ),
-                SizedBox(height: 30),
-                SizedBox(
+                  SizedBox(height: 20,)
+
+                , DropdownButtonHideUnderline(child: DropdownButton(
+                  hint: Text('Select category') ,
+                  onChanged: (value){
+                    setState(() {
+                      category=value!;
+                    });
+
+                  }, 
+                  items: [
+                    DropdownMenuItem(child: Text('Iphone'), 
+                    value:'Iphone' ,)
+                    , DropdownMenuItem(child: Text('Labtop'), 
+                    value:'Labtop' ,)
+                    , DropdownMenuItem(child: Text('Watch'), 
+                    value:'Watch' ,)
+
+                  ],
+                  
+                  ))
+
+                , SizedBox(height: 30),
+
+                TextButton(onPressed: (){
+                  uploadimage();
+
+                }, child:pickedimage == null ?Text('choose image'):Image.file(pickedimage!)) 
+                
+                , SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[900]),
                         onPressed: () {
                           formkey.currentState!.save();
-                          if (formkey.currentState!.validate()) {
-                            signup();
-                          }
+                          if (formkey.currentState!.validate()) {}
                         },
-                        child:isLoading?CircularProgressIndicator(): Text(
-                          'Sign up',
+                        child: Text(
+                          'Upload ',
                           style: TextStyle(color: Colors.white),
                         ))),
-                SizedBox(height: 30),
-                Text('already have an account?'),
-                TextButton(onPressed: () {
-                  Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => LoginScreen(),
-                ),
-              );
-                }, child: Text('Login'))
+                
               ],
             ),
           ),
@@ -198,4 +161,3 @@ void signup() async {
     );
   }
 }
-
