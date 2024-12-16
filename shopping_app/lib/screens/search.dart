@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../Widget/productwidget.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -44,15 +43,25 @@ class _SearchScreenState extends State<SearchScreen> {
   ];
 
   List<Map<String, String>> filteredProducts = [];
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  String _searchQuery = '';
+  double _totalPrice = 0.0;
 
   @override
   void initState() {
     super.initState();
+    // Initialize filteredProducts with all products
     filteredProducts = products;
-    _speech = stt.SpeechToText();
+  }
+
+  void _updateTotalPrice(double price) {
+    setState(() {
+      _totalPrice += price;
+    });
+  }
+
+  void _decreaseTotalPrice(double price) {
+    setState(() {
+      _totalPrice -= price;
+    });
   }
 
   void _filterProducts(String query) {
@@ -68,31 +77,6 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Future<void> _startListening() async {
-    bool available = await _speech.initialize(
-      onError: (val) => print("Error: $val"),
-      onStatus: (val) => print("Status: $val"),
-    );
-
-    if (available) {
-      setState(() => _isListening = true);
-      _speech.listen(onResult: (val) {
-        setState(() {
-          _searchQuery = val.recognizedWords;
-          _filterProducts(_searchQuery);
-        });
-      });
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
-  }
-
-  void _stopListening() {
-    setState(() => _isListening = false);
-    _speech.stop();
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -104,38 +88,20 @@ class _SearchScreenState extends State<SearchScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: 'Search for a product',
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.blue),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      onChanged: _filterProducts,
-                      controller: TextEditingController(text: _searchQuery),
-                    ),
+              TextField(
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Search for a product',
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _isListening ? _stopListening : _startListening,
-                    child: CircleAvatar(
-                      backgroundColor: _isListening ? Colors.red : Colors.blue,
-                      child: Icon(
-                        _isListening ? Icons.mic : Icons.mic_none,
-                        color: Colors.white,
-                      ),
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.grey),
                   ),
-                ],
+                ),
+                onChanged: _filterProducts, // Call filter function
               ),
               Expanded(
                 child: GridView.count(
@@ -151,7 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     );
                   }).toList(),
                 ),
-              ),
+              ), 
             ],
           ),
         ),

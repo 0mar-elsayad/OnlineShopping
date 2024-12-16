@@ -67,18 +67,18 @@ class _Profilescreenstate extends State<ProfileScreen> {
                       color: Colors.grey[300],
                       thickness: 1,
                     ),
-                    ListtileWidget(
-                      icon: Icons.add,
-                      title: 'Add Product',
-                      function: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Addproduct(),
-                          ),
-                        );
-                      },
-                    ),
+                    // ListtileWidget(
+                    //   icon: Icons.add,
+                    //   title: 'Add Product',
+                    //   function: () {
+                    //     Navigator.pushReplacement(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => const Addproduct(),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     const SizedBox(
                       height: 50,
                     ),

@@ -8,7 +8,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final List<Map<String, String>> products = [
     {
       'name': 'iPhone 13',
@@ -49,12 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Map<String, String>> filteredProducts = [];
   double _totalPrice = 0.0;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the filteredProducts to display all products by default
     filteredProducts = products;
+    _tabController = TabController(length: 4, vsync: this);  // Number of tabs for categories
   }
 
   void _updateTotalPrice(double price) {
@@ -69,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Filter products based on category
   void _filterProducts(String category) {
     setState(() {
       if (category == 'All') {
@@ -88,55 +88,72 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Home Screen'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              const Text(
-                "E_commerce",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              // New Category Buttons Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _filterProducts('Mobiles'),
-                    child: const Text('Mobiles'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _filterProducts('Watches'),
-                    child: const Text('Accessories'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _filterProducts('Laptops'),
-                    child: const Text('Laptops'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Product Grid Section
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 4.5 / 7,
-                  children: filteredProducts.map((product) {
-                    return Productwidget(
-                      name: product['name']!,
-                      price: product['price']!,
-                      imageUrl: product['imageUrl']!,
-                    );
-                  }).toList(),
-                ),
-              ),
+          backgroundColor: Colors.blueAccent,
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'All'),
+              Tab(text: 'Mobiles'),
+              Tab(text: 'Accessories'),
+              Tab(text: 'Laptops'),
             ],
+            onTap: (index) {
+              // Update the product list based on selected tab
+              switch (index) {
+                case 0:
+                  _filterProducts('All');
+                  break;
+                case 1:
+                  _filterProducts('Mobiles');
+                  break;
+                case 2:
+                  _filterProducts('Watches');
+                  break;
+                case 3:
+                  _filterProducts('Laptops');
+                  break;
+              }
+            },
           ),
         ),
+        body: Column(
+          children: [
+            const SizedBox(height: 20),
+            // Product Grid Section
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Show all products
+                  _buildProductGrid(filteredProducts),
+                  // Tab 2: Show Mobiles
+                  _buildProductGrid(products.where((product) => product['category'] == 'Mobiles').toList()),
+                  // Tab 3: Show Watches
+                  _buildProductGrid(products.where((product) => product['category'] == 'Watches').toList()),
+                  // Tab 4: Show Laptops
+                  _buildProductGrid(products.where((product) => product['category'] == 'Laptops').toList()),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildProductGrid(List<Map<String, String>> products) {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 4.5 / 7,
+      children: products.map((product) {
+        return Productwidget(
+          name: product['name']!,
+          price: product['price']!,
+          imageUrl: product['imageUrl']!,
+        );
+      }).toList(),
     );
   }
 }
