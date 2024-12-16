@@ -1,57 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_app/Widget/Elevatedbotton.dart';
-import '../Widget/Cartwidget.dart';
+import 'package:shopping_app/model/cart_model_list.dart';
+import 'package:provider/provider.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  @override
   Widget build(BuildContext context) {
+    final cart = Provider.of<CartModelList>(context);
+
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-        ],
-        title: Text(
-          'My Cart',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Cart"),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: 4, // 4 items in cart
+      body: cart.cartItems.isEmpty
+          ? const Center(child: Text('Your cart is empty!'))
+          : ListView.builder(
+              itemCount: cart.cartItems.length,
               itemBuilder: (context, index) {
-                return Cartwidget(); // Reuse Cartwidget
+                final item = cart.cartItems[index];
+                return ListTile(
+                  title: Text(item.name),
+                  subtitle: Text("\$${item.price} x ${item.quantity}"),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.remove_circle_outline),
+                    onPressed: () {
+                      cart.remove(item);
+                    },
+                  ),
+                );
               },
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '50000.00',
-                  style: TextStyle(fontSize: 22),
-                ),
-                ElevatedWidget(
-                  title: 'check out',
-                  color: Colors.blue,
-                  function: () {},
-                ),
-              ],
-            ),
-          ),
-        ],
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          'Total: \$${cart.totalPrice}',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

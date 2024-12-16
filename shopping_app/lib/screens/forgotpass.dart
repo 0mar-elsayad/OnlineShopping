@@ -20,21 +20,21 @@ class _ForgotpasswordState extends State<Forgotpassword> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
-                Text(
+                const Text(
                   'Shopping-App',
                   style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
                 Form(
                   key: formkey,
                   child: Column(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                       TextFormField(
@@ -45,7 +45,7 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                             return null;
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
                           hintText: 'Email Address',
@@ -53,13 +53,13 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -69,7 +69,7 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                           formkey.currentState!.save();
                           if (formkey.currentState!.validate()) {}
                         },
-                        child: Text(
+                        child: const Text(
                           'reset password',
                           style: TextStyle(color: Colors.white),
                         ))),

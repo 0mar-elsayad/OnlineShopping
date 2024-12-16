@@ -2,28 +2,58 @@ import 'package:flutter/material.dart';
 import '../Widget/productwidget.dart';
 
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key, required List<String> productList});
+
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final List<Map<String, String>> products = [
+    {
+      'name': 'iPhone 13',
+      'price': '3500',
+      'imageUrl':
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtkScJu7uJWUM2HXMluAkmnXHMvWeSoepePg&s',
+    },
+    {
+      'name': 'MacBook Air',
+      'price': '1200',
+      'imageUrl':
+          'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-midnight-select-202402?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1708367688034,'
+    },
+    {
+      'name': 'Apple Watch',
+      'price': '400',
+      'imageUrl':
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc_mmycGKjssaK86jb1uoEGK2POQhHLtLWA&s',
+    },
+    {
+      'name': 'iPad Pro',
+      'price': '800',
+      'imageUrl':
+          'https://m.media-amazon.com/images/I/71vg3LNWBTL._AC_SL1500_.jpg'
+    },
+    {
+      'name': 'AirPods',
+      'price': '250',
+      'imageUrl':
+          'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83_AV2?wid=1144&hei=1144&fmt=jpeg&qlt=95&.v=1660803960086',
+    },
+  ];
 
-final List<Map<String, String>> products = [
-  {'name': 'iPhone 13', 'price': '3500'},
-  {'name': 'MacBook Air', 'price': '1200'},
-  {'name': 'Apple Watch', 'price': '400'},
-  {'name': 'iPad Pro', 'price': '800'},
-  {'name': 'AirPods', 'price': '250'},
-];
+  double _totalPrice = 0.0;
 
+  void _updateTotalPrice(double price) {
+    setState(() {
+      _totalPrice += price;
+    });
+  }
 
-  List<Map<String, String>> filteredProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-
-    filteredProducts = List.from(products);
+  void _decreaseTotalPrice(double price) {
+    setState(() {
+      _totalPrice -= price;
+    });
   }
 
   @override
@@ -31,47 +61,50 @@ final List<Map<String, String>> products = [
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Search Screen'),
+          title: const Text('Search Screen'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-
               TextField(
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   hintText: 'Search for a product',
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: const BorderSide(color: Colors.blue),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey),
+                    borderSide: const BorderSide(color: Colors.grey),
                   ),
                 ),
                 onChanged: (value) {
-
-                  setState(() {
-                    filteredProducts = products.where((product) {
-                      return product['name']!
-                          .toLowerCase()
-                          .contains(value.toLowerCase());
-                    }).toList();
-                  });
+                  // Add search functionality here
                 },
               ),
-
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   childAspectRatio: 4.5 / 7,
-                  children: filteredProducts.map((product) {
-                    return Productwidget( );
+                  children: products.map((product) {
+                    return Productwidget(
+                      name: product['name']!,
+                      price: product['price']!,
+                      imageUrl: product['imageUrl']!,
+                    );
                   }).toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "Total Price: \$$_totalPrice",
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -81,123 +114,3 @@ final List<Map<String, String>> products = [
     );
   }
 }
-
-//  import 'package:flutter/material.dart';
-// import 'package:speech_to_text/speech_to_text.dart' as stt;
-// import '../Widget/productwidget.dart';
-
-// class SearchScreen extends StatefulWidget {
-//   @override
-//   _SearchScreenState createState() => _SearchScreenState();
-// }
-
-// class _SearchScreenState extends State<SearchScreen> {
-//   final List<Map<String, String>> products = [
-//     {'name': 'iPhone 13', 'price': '3500', 'image': 'https://www.dslr-zone.com/wp-content/uploads/2021/10/1-2.jpeg'},
-//     {'name': 'MacBook Air', 'price': '1200', 'image': 'https://example.com/image-not-found.jpg'},
-//     {'name': 'Apple Watch', 'price': '400', 'image': 'https://example.com/image-not-found.jpg'},
-//     {'name': 'iPad Pro', 'price': '800', 'image': 'https://www.dslr-zone.com/wp-content/uploads/2021/10/1-2.jpeg'},
-//   ];
-
-//   List<Map<String, String>> filteredProducts = [];
-//   final TextEditingController _searchController = TextEditingController();
-//   late stt.SpeechToText _speech; // Speech-to-text instance
-//   bool _isListening = false;
-//   String _voiceInput = "";
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     filteredProducts = List.from(products);
-//     _speech = stt.SpeechToText();
-//   }
-
-//   void _startListening() async {
-//     bool available = await _speech.initialize();
-//     if (available) {
-//       setState(() {
-//         _isListening = true;
-//       });
-//       _speech.listen(onResult: (result) {
-//         setState(() {
-//           _voiceInput = result.recognizedWords;
-//           _searchController.text = _voiceInput;
-//           _filterProducts(_voiceInput);
-//         });
-//       });
-//     }
-//   }
-
-//   void _stopListening() {
-//     _speech.stop();
-//     setState(() {
-//       _isListening = false;
-//     });
-//   }
-
-//   void _filterProducts(String query) {
-//     setState(() {
-//       filteredProducts = products.where((product) {
-//         return product['name']!.toLowerCase().contains(query.toLowerCase());
-//       }).toList();
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Scaffold(
-//         appBar: AppBar(
-//           title: Text('Search Screen'),
-//         ),
-//         body: Padding(
-//           padding: const EdgeInsets.all(8.0),
-//           child: Column(
-//             children: [
-//               // Search Field with Voice Search Button
-//               Row(
-//                 children: [
-//                   Expanded(
-//                     child: TextField(
-//                       controller: _searchController,
-//                       decoration: InputDecoration(
-//                         prefixIcon: Icon(Icons.search),
-//                         hintText: 'Search for a product',
-//                         focusedBorder: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                           borderSide: BorderSide(color: Colors.blue),
-//                         ),
-//                         enabledBorder: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                           borderSide: BorderSide(color: Colors.grey),
-//                         ),
-//                       ),
-//                       onChanged: _filterProducts,
-//                     ),
-//                   ),
-//                   IconButton(
-//                     icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-//                     color: _isListening ? Colors.red : Colors.grey,
-//                     onPressed: _isListening ? _stopListening : _startListening,
-//                   ),
-//                 ],
-//               ),
-//               // Product Grid
-//               Expanded(
-//                 child: GridView.count(
-//                   crossAxisCount: 2,
-//                   crossAxisSpacing: 10,
-//                   mainAxisSpacing: 10,
-//                   childAspectRatio: 4.5 / 7,
-//                   children: filteredProducts.map((product) {
-//                     return Productwidget( );
-//                   }).toList(),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
