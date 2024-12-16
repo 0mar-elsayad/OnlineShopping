@@ -17,44 +17,44 @@ class _SignupScreenState extends State<SignupScreen> {
   final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
-  final birthdate = TextEditingController(); // New controller for birthdate
+  final birthdate = TextEditingController(); 
 
   final formKey = GlobalKey<FormState>();
 
-  // Function to handle sign-up
+ 
   void signup() async {
     try {
       setState(() {
         isLoading = true;
       });
 
-      // Firebase Authentication for sign-up
+      
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email.text,
         password: password.text,
       );
 
-      // Storing user data in Firestore
+      
       await FirebaseFirestore.instance
           .collection('users')
           .doc(FirebaseAuth.instance.currentUser!.uid)
           .set({
         'name': name.text,
         'email': email.text,
-        'birthdate': birthdate.text, // Add birthdate here
+        'birthdate': birthdate.text, 
         'id': FirebaseAuth.instance.currentUser!.uid,
         'usercart': [],
         'userwishlist': [],
       });
 
-      // Navigate to the BottomBar screen
+     
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const BottomBar(),
         ),
       );
     } on FirebaseException catch (error) {
-      // Display error message
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString()),
@@ -73,7 +73,7 @@ class _SignupScreenState extends State<SignupScreen> {
     name.dispose();
     email.dispose();
     password.dispose();
-    birthdate.dispose(); // Dispose birthdate controller
+    birthdate.dispose(); 
     super.dispose();
   }
 
@@ -156,7 +156,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Birthdate Field with Calendar Picker
+                
                         TextFormField(
                           controller: birthdate,
                           readOnly: true,
@@ -194,7 +194,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Signup Button
+               
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -216,7 +216,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Redirect to Login
+ 
                   const Text('Already have an account?'),
                   TextButton(
                     onPressed: () {
