@@ -17,53 +17,56 @@ class _BottomBarState extends State<BottomBar> {
   // Pages corresponding to the BottomNavigationBar items
   final List<Widget> pagelist = [
     const HomeScreen(),
-     SearchScreen(),
+    const SearchScreen(
+      productList: [],
+    ),
     const CartScreen(),
-    ProfileScreen()
+    const ProfileScreen()
   ];
 
   void selectedPage(int index) {
-  print('User selected tab: $index'); // Logs the selected tab
-  setState(() {
-    selected = index;
-  });
-}
+    print('User selected tab: $index'); // Logs the selected tab
+    setState(() {
+      selected = index;
+    });
+  }
 
-@override
-Widget build(BuildContext context) {
-  print('Building BottomBar with selected index: $selected'); // Logs the selected index
-  return Scaffold(
-    body: IndexedStack(
-      index: selected,
-      children: pagelist.map((page) {
-        print('Rendering page: ${page.runtimeType}'); // Logs the page type
-        return page;
-      }).toList(),
-    ),
-    bottomNavigationBar: BottomNavigationBar(
-      currentIndex: selected,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.grey,
-      onTap: selectedPage,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: 'Search',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
-    ),
-  );
-}
+  @override
+  Widget build(BuildContext context) {
+    print(
+        'Building BottomBar with selected index: $selected'); // Logs the selected index
+    return Scaffold(
+      body: IndexedStack(
+        index: selected,
+        children: pagelist.map((page) {
+          print('Rendering page: ${page.runtimeType}'); // Logs the page type
+          return page;
+        }).toList(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selected,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        onTap: selectedPage,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
 }
