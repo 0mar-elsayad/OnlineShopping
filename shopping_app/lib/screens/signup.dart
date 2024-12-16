@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shopping_app/screens/bottombar.dart';
 import 'package:shopping_app/screens/Login.dart';
@@ -13,64 +12,59 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  bool isLoading = false;
 
-  bool isLoading=false;
+  final name = TextEditingController();
+  final email = TextEditingController();
+  final password = TextEditingController();
 
-final name = TextEditingController();
-final email = TextEditingController();
-final password = TextEditingController();
+  void signup() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
 
-void signup() async {
-  try {
-    setState(() {
-      isLoading = true;
-    });
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email.text,
+        password: password.text,
+      );
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .set({
+        'name': name.text,
+        'email': email.text,
+        'id': FirebaseAuth.instance.currentUser!.uid,
+        'usercart': [],
+        'userwishlist': []
+      });
 
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email.text,
-      password: password.text,
-    );
-    await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).set({
-      'name':name.text,
-      'email':email.text,
-      'id':FirebaseAuth.instance.currentUser!.uid,
-      'usercart':[],
-      'userwishlist':[]
-    });
-  
-
-
-
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => BottomBar(),
-      ),
-    );
-  } on FirebaseException catch (error) {
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error.toString()),
-        duration: Duration(seconds: 3),
-      ),
-    );
-  } finally {
-    setState(() {
-      isLoading = false; 
-    });
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const BottomBar(),
+        ),
+      );
+    } on FirebaseException catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-}
 
-@override
+  @override
   void dispose() {
     name.dispose();
     email.dispose();
     password.dispose();
     super.dispose();
   }
-
-
 
   final formkey = GlobalKey<FormState>();
   @override
@@ -84,14 +78,14 @@ void signup() async {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
-                Text(
+                const Text(
                   'Shopping-App',
                   style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
                 Form(
@@ -99,9 +93,7 @@ void signup() async {
                   child: Column(
                     children: [
                       TextFormField(
-                          controller: name,
-
-
+                        controller: name,
                         validator: (value) {
                           if (value!.isEmpty) {
                             return 'Please enter a valid name!';
@@ -109,7 +101,7 @@ void signup() async {
                             return null;
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
                           hintText: 'User-Name',
@@ -117,13 +109,11 @@ void signup() async {
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                       TextFormField(
-                          controller: email,
-
-
+                        controller: email,
                         validator: (value) {
                           if (value!.isEmpty || !value.contains('@')) {
                             return 'Please enter a valid email adress';
@@ -131,7 +121,7 @@ void signup() async {
                             return null;
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
                           hintText: 'Email Address',
@@ -139,14 +129,11 @@ void signup() async {
                               borderSide: BorderSide(color: Colors.grey)),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                       TextFormField(
-                        controller: password, 
-
-
-
+                        controller: password,
                         validator: (value) {
                           if (value!.isEmpty || value.length < 7) {
                             return 'Password should be at least 7 characters';
@@ -154,7 +141,7 @@ void signup() async {
                             return null;
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green)),
                           hintText: 'Password',
@@ -165,7 +152,7 @@ void signup() async {
                     ],
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -177,19 +164,23 @@ void signup() async {
                             signup();
                           }
                         },
-                        child:isLoading?CircularProgressIndicator(): Text(
-                          'Sign up',
-                          style: TextStyle(color: Colors.white),
-                        ))),
-                SizedBox(height: 30),
-                Text('already have an account?'),
-                TextButton(onPressed: () {
-                  Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => LoginScreen(),
-                ),
-              );
-                }, child: Text('Login'))
+                        child: isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text(
+                                'Sign up',
+                                style: TextStyle(color: Colors.white),
+                              ))),
+                const SizedBox(height: 30),
+                const Text('already have an account?'),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Login'))
               ],
             ),
           ),
@@ -198,4 +189,3 @@ void signup() async {
     );
   }
 }
-

@@ -11,44 +11,45 @@ class Productdetaills extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView( // Allows content to scroll if necessary
+        body: SingleChildScrollView(
+          // Allows content to scroll if necessary
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Product Image
                 Image.network(
-                  'https://www.dslr-zone.com/wp-content/uploads/2021/10/1-2.jpeg',
+                  'https://shop.orange.eg/content/images/thumbs/0009982_iphone13-renewed.jpeg',
                   width: double.infinity,
                   height: screenHeight * 0.4, // Dynamic height
                   fit: BoxFit.contain, // Ensures the image scales correctly
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // Product Title
-                Text(
+                const Text(
                   'Iphone',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
                 // Product Description
-                Text(
+                const Text(
                   'Iphone pro max',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
                   textAlign: TextAlign.start,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // Price and Add to Cart Button
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Price
-                    Text(
+                    const Text(
                       '\$4000',
                       style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
@@ -60,7 +61,7 @@ class Productdetaills extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CartScreen(),
+                            builder: (context) => const CartScreen(),
                           ),
                         );
                       },
