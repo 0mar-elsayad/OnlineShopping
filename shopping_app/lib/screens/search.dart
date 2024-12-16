@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../Widget/productwidget.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -42,18 +43,54 @@ class _SearchScreenState extends State<SearchScreen> {
     },
   ];
 
-  double _totalPrice = 0.0;
+  List<Map<String, String>> filteredProducts = [];
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _searchQuery = '';
 
-  void _updateTotalPrice(double price) {
+  @override
+  void initState() {
+    super.initState();
+    filteredProducts = products;
+    _speech = stt.SpeechToText();
+  }
+
+  void _filterProducts(String query) {
     setState(() {
-      _totalPrice += price;
+      if (query.isEmpty) {
+        filteredProducts = products;
+      } else {
+        filteredProducts = products
+            .where((product) =>
+                product['name']!.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
     });
   }
 
-  void _decreaseTotalPrice(double price) {
-    setState(() {
-      _totalPrice -= price;
-    });
+  Future<void> _startListening() async {
+    bool available = await _speech.initialize(
+      onError: (val) => print("Error: $val"),
+      onStatus: (val) => print("Status: $val"),
+    );
+
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(onResult: (val) {
+        setState(() {
+          _searchQuery = val.recognizedWords;
+          _filterProducts(_searchQuery);
+        });
+      });
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
+  void _stopListening() {
+    setState(() => _isListening = false);
+    _speech.stop();
   }
 
   @override
@@ -67,22 +104,38 @@ class _SearchScreenState extends State<SearchScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: 'Search for a product',
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Search for a product',
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                      ),
+                      onChanged: _filterProducts,
+                      controller: TextEditingController(text: _searchQuery),
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _isListening ? _stopListening : _startListening,
+                    child: CircleAvatar(
+                      backgroundColor: _isListening ? Colors.red : Colors.blue,
+                      child: Icon(
+                        _isListening ? Icons.mic : Icons.mic_none,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-                onChanged: (value) {
-                  // Add search functionality here
-                },
+                ],
               ),
               Expanded(
                 child: GridView.count(
@@ -90,21 +143,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   childAspectRatio: 4.5 / 7,
-                  children: products.map((product) {
+                  children: filteredProducts.map((product) {
                     return Productwidget(
                       name: product['name']!,
                       price: product['price']!,
                       imageUrl: product['imageUrl']!,
                     );
                   }).toList(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  "Total Price: \$$_totalPrice",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
