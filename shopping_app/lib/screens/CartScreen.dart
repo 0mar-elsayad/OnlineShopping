@@ -1,20 +1,172 @@
-// cartScreen.dart
-
 import 'package:flutter/material.dart';
-import 'package:shopping_app/model/cart_model_list.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // For user authentication
+import '../model/cart_model_list.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  _CartScreenState createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  final TextEditingController _feedbackController = TextEditingController();
+  int _selectedRating = 1; // Default rating
+  String _userName = "Anonymous"; // Default username
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  // Fetch user name from Firestore
+  Future<void> _fetchUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          _userName = userDoc['name'] ?? "Anonymous";
+        });
+      }
+    }
+  }
+
+  // Show feedback form dialog
+  void _showFeedbackForm(BuildContext context, double totalPrice, CartModelList cart) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Feedback and Rating"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Rating Dropdown
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Rating:"),
+                    DropdownButton<int>(
+                      value: _selectedRating,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRating = value!;
+                        });
+                      },
+                      items: List.generate(5, (index) {
+                        return DropdownMenuItem(
+                          value: index + 1,
+                          child: Text("${index + 1}"),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Feedback Text Field
+                TextField(
+                  controller: _feedbackController,
+                  decoration: const InputDecoration(
+                    hintText: "Enter your feedback",
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 10),
+                Text("Total Cost: \$${totalPrice.toStringAsFixed(2)}",
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  await _submitFeedbackAndDeleteOrder(
+                      context, _feedbackController.text, _selectedRating, totalPrice, cart);
+                },
+                child: const Text("Submit"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Cancel"),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  // Submit feedback, save to Firestore, and delete the order
+  Future<void> _submitFeedbackAndDeleteOrder(
+      BuildContext context, String feedback, int rating, double totalPrice, CartModelList cart) async {
+    final CollectionReference feedbackCollection =
+        FirebaseFirestore.instance.collection('feedback');
+    final CollectionReference ordersCollection =
+        FirebaseFirestore.instance.collection('orders');
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No logged-in user. Please log in to submit.")));
+      return;
+    }
+
+    final orderId = ordersCollection.doc().id;
+
+    final orderItems = cart.cartItems.map((item) {
+      return {
+        "productName": item.name,
+        "quantity": item.quantity,
+        "price": double.parse(item.price),
+        "status": "Delivered", // Mark as delivered
+      };
+    }).toList();
+
+    try {
+      // Save feedback in 'feedback' collection
+      await feedbackCollection.add({
+        "orderId": orderId,
+        "customerName": _userName,
+        "rating": rating,
+        "feedback": feedback,
+        "details": orderItems,
+        "totalCost": totalPrice,
+        "timestamp": Timestamp.now(),
+      });
+
+      // Delete order and clear cart
+      cart.clearCart();
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Order submitted, feedback saved, and cart cleared!")));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  // Cancel order and update status
+  void _cancelOrder(CartModelList cart) {
+    cart.clearCart();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Order canceled and marked as deleted!")));
+  }
 
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartModelList>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Cart"),
-      ),
+      appBar: AppBar(title: const Text("Cart")),
       body: cart.cartItems.isEmpty
           ? const Center(child: Text('Your cart is empty!'))
           : ListView.builder(
@@ -22,28 +174,54 @@ class CartScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final item = cart.cartItems[index];
                 return ListTile(
-                  leading: Image.network(
-                    item.imageUrl,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
+                  leading: Image.network(item.imageUrl, width: 50, height: 50),
                   title: Text(item.name),
-                  subtitle: Text("Price: \$${item.price} x ${item.quantity}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  subtitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                         IconButton(
-                        icon: const Icon(Icons.add),
+                      Text("Price: \$${item.price}"),
+                      Row(
+                        children: [
+                          // IconButton(
+                          //     icon: const Icon(Icons.remove),
+                          //     onPressed: () {
+                          //       if (item.quantity > 1) {
+                          //         cart.updateQuantity(item, item.quantity - 1);
+                          //       } else {
+                          //         cart.remove(item);
+                          //       }
+                          //     }),
+                          // Text("${item.quantity}"),
+                          // IconButton(
+                          //     icon: const Icon(Icons.add),
+                          //     onPressed: () {
+                          //       if (item.quantity < item.maxQuantity) {
+                          //         cart.updateQuantity(item, item.quantity + 1);
+                          //       } else {
+                          //         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          //             content: Text("Reached max available quantity.")));
+                          //       }
+                          //     }),
+                                                // Minus Icon
+                                                                      IconButton(
+                        icon: const Icon(Icons.add, color: Colors.green),
                         onPressed: () {
-                          cart.updateQuantity(item, item.quantity + 1);
-                        },
+                          if (item.quantity < item.maxQuantity) {
+                            cart.updateQuantity(item, item.quantity + 1);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Max stock reached!")),
+                            );
+                          }
+                        }
                       ),
+
+                      
                       Text('${item.quantity}'),
-                                            IconButton(
-                        icon: const Icon(Icons.remove),
+                      
+                      IconButton(
+                        icon: const Icon(Icons.remove, color: Colors.red),
                         onPressed: () {
-                          // Decrease quantity or remove
                           if (item.quantity > 1) {
                             cart.updateQuantity(item, item.quantity - 1);
                           } else {
@@ -51,13 +229,15 @@ class CartScreen extends StatelessWidget {
                           }
                         },
                       ),
-                   IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          cart.remove(item);
-                        },
+                        ],
                       ),
                     ],
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      cart.remove(item);
+                    },
                   ),
                 );
               },
@@ -68,33 +248,22 @@ class CartScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Total: \$${cart.totalPrice}',
+              'Total: \$${cart.totalPrice.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("Checkout"),
-                    content: Text("Your total is \$${cart.totalPrice}"),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          cart.clearCart();
-                          Navigator.pop(context);
-                        },
-                        child: const Text("Confirm"),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              child: const Text("Checkout"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _cancelOrder(cart),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text("Cancel Order"),
+                ),
+                ElevatedButton(
+                  onPressed: () => _showFeedbackForm(context, cart.totalPrice, cart),
+                  child: const Text("Checkout"),
+                ),
+              ],
             ),
           ],
         ),

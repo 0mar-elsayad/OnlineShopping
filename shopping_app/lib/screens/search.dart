@@ -1,93 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import '../Widget/productwidget.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key, required List<String> productList});
+  const SearchScreen({super.key});
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final List<Map<String, String>> products = [
-    {
-      'name': 'iPhone 13',
-      'price': '3500',
-      'imageUrl':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtkScJu7uJWUM2HXMluAkmnXHMvWeSoepePg&s',
-    },
-    {
-      'name': 'MacBook Air',
-      'price': '1200',
-      'imageUrl':
-          'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-midnight-select-202402?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1708367688034,'
-    },
-    {
-      'name': 'Apple Watch',
-      'price': '400',
-      'imageUrl':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc_mmycGKjssaK86jb1uoEGK2POQhHLtLWA&s',
-    },
-    {
-      'name': 'iPad Pro',
-      'price': '800',
-      'imageUrl':
-          'https://m.media-amazon.com/images/I/71vg3LNWBTL._AC_SL1500_.jpg'
-    },
-    {
-      'name': 'AirPods',
-      'price': '250',
-      'imageUrl':
-          'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83_AV2?wid=1144&hei=1144&fmt=jpeg&qlt=95&.v=1660803960086',
-    },
-  ];
-
-  List<Map<String, String>> filteredProducts = [];
-  double _totalPrice = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize filteredProducts with all products
-    filteredProducts = products;
-  }
-
-  void _updateTotalPrice(double price) {
-    setState(() {
-      _totalPrice += price;
-    });
-  }
-
-  void _decreaseTotalPrice(double price) {
-    setState(() {
-      _totalPrice -= price;
-    });
-  }
-
-  void _filterProducts(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredProducts = products;
-      } else {
-        filteredProducts = products
-            .where((product) =>
-                product['name']!.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-    });
-  }
+  String searchQuery = ""; // User input for search
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Search Screen'),
+          title: const Text('Search Products'),
+          backgroundColor: Colors.blueAccent,
         ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
+              // Search bar input
               TextField(
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
@@ -101,23 +39,84 @@ class _SearchScreenState extends State<SearchScreen> {
                     borderSide: const BorderSide(color: Colors.grey),
                   ),
                 ),
-                onChanged: _filterProducts, // Call filter function
+                onChanged: (query) {
+                  setState(() {
+                    searchQuery = query; // Update search query
+                  });
+                },
               ),
+              const SizedBox(height: 10),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 4.5 / 7,
-                  children: filteredProducts.map((product) {
-                    return Productwidget(
-                      name: product['name']!,
-                      price: product['price']!,
-                      imageUrl: product['imageUrl']!,
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('products')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("No products available."));
+                    }
+
+                    // Filter products based on search query and quantity > 0
+                    final filteredProducts = snapshot.data!.docs.where((doc) {
+                      final name = doc['name']?.toString().toLowerCase() ?? '';
+                      final quantity = doc['quantity'] ?? 0;
+                      return name.contains(searchQuery.toLowerCase()) &&
+                             quantity > 0; // Exclude products with quantity = 0
+                    }).toList();
+
+                    if (filteredProducts.isEmpty) {
+                      return const Center(child: Text("No matching products found."));
+                    }
+
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 4.5 / 7,
+                      ),
+                      itemCount: filteredProducts.length,
+                      itemBuilder: (context, index) {
+                        final product = filteredProducts[index];
+
+                        // Safely access Firestore fields
+                        final productName = product['name'] ?? 'No Name';
+                        final productPrice = product['price']?.toString() ?? '0';
+                        final productImageBase64 = product['imageBase64'];
+
+                        // Decode Base64 image if available, otherwise use placeholder
+                        final productImage = productImageBase64 != null
+                            ? Image.memory(
+                                base64Decode(productImageBase64),
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                'https://via.placeholder.com/150', // Placeholder image
+                                fit: BoxFit.cover,
+                              );
+
+                        return Productwidget(
+                          id: product.id,
+                          name: productName,
+                          price: productPrice,
+                          imageUrl: productImageBase64 != null
+                              ? "data:image/png;base64,$productImageBase64"
+                              : 'https://via.placeholder.com/150',
+                          maxQuantity: product['quantity'] ?? 0,
+                        );
+                      },
                     );
-                  }).toList(),
+                  },
                 ),
-              ), 
+              ),
             ],
           ),
         ),
