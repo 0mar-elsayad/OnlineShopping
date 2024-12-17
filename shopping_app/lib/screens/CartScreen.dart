@@ -85,7 +85,7 @@ class _CartScreenState extends State<CartScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () async {
-                  await _submitFeedbackAndDeleteOrder(
+                  await _submitFeedbackAndSaveOrder(
                       context, _feedbackController.text, _selectedRating, totalPrice, cart);
                 },
                 child: const Text("Submit"),
@@ -103,8 +103,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Submit feedback, save to Firestore, and delete the order
-  Future<void> _submitFeedbackAndDeleteOrder(
+  // Submit feedback, save to Firestore, and save the order
+  Future<void> _submitFeedbackAndSaveOrder(
       BuildContext context, String feedback, int rating, double totalPrice, CartModelList cart) async {
     final CollectionReference feedbackCollection =
         FirebaseFirestore.instance.collection('feedback');
@@ -123,10 +123,11 @@ class _CartScreenState extends State<CartScreen> {
 
     final orderItems = cart.cartItems.map((item) {
       return {
+        "productId": item.id, // Assuming `id` is a property for the product ID
         "productName": item.name,
         "quantity": item.quantity,
         "price": double.parse(item.price),
-        "status": "Delivered", // Mark as delivered
+        "status": "Pending", // Default status for new orders
       };
     }).toList();
 
@@ -140,6 +141,20 @@ class _CartScreenState extends State<CartScreen> {
         "details": orderItems,
         "totalCost": totalPrice,
         "timestamp": Timestamp.now(),
+      });
+
+      // Save order in 'orders' collection
+      await ordersCollection.doc(orderId).set({
+        "name": _userName,
+        "price": cart.totalPrice.toString(),
+        "productId": orderItems.map((item) => item["productId"]).toList(),
+        "quantity": orderItems.fold<int>(0, (sum, item) {
+  return sum + (item["quantity"] as int);
+}),
+        "status": "Pending",
+        "total": totalPrice,
+        "timestamp": Timestamp.now(),
+        "totalAmount": totalPrice,
       });
 
       // Delete order and clear cart
@@ -202,33 +217,29 @@ class _CartScreenState extends State<CartScreen> {
                           //             content: Text("Reached max available quantity.")));
                           //       }
                           //     }),
-                                                // Minus Icon
-                                                                      IconButton(
-                        icon: const Icon(Icons.add, color: Colors.green),
-                        onPressed: () {
-                          if (item.quantity < item.maxQuantity) {
-                            cart.updateQuantity(item, item.quantity + 1);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Max stock reached!")),
-                            );
-                          }
-                        }
-                      ),
-
-                      
-                      Text('${item.quantity}'),
-                      
-                      IconButton(
-                        icon: const Icon(Icons.remove, color: Colors.red),
-                        onPressed: () {
-                          if (item.quantity > 1) {
-                            cart.updateQuantity(item, item.quantity - 1);
-                          } else {
-                            cart.remove(item);
-                          }
-                        },
-                      ),
+                          IconButton(
+                            icon: const Icon(Icons.add, color: Colors.green),
+                            onPressed: () {
+                              if (item.quantity < item.maxQuantity) {
+                                cart.updateQuantity(item, item.quantity + 1);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Max stock reached!")),
+                                );
+                              }
+                            },
+                          ),
+                          Text('${item.quantity}'),
+                          IconButton(
+                            icon: const Icon(Icons.remove, color: Colors.red),
+                            onPressed: () {
+                              if (item.quantity > 1) {
+                                cart.updateQuantity(item, item.quantity - 1);
+                              } else {
+                                cart.remove(item);
+                              }
+                            },
+                          ),
                         ],
                       ),
                     ],
