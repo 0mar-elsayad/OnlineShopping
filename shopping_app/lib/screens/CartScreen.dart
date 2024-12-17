@@ -13,7 +13,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final TextEditingController _feedbackController = TextEditingController();
-  int _selectedRating = 1; // Default rating
+  int _selectedRating = 1; 
   String _userName = "Anonymous"; // Default username
 
   @override
@@ -34,8 +34,6 @@ class _CartScreenState extends State<CartScreen> {
       }
     }
   }
-
-  // Show feedback form dialog
   void _showFeedbackForm(BuildContext context, double totalPrice, CartModelList cart) {
     showDialog(
       context: context,
@@ -46,7 +44,6 @@ class _CartScreenState extends State<CartScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Rating Dropdown
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -68,7 +65,6 @@ class _CartScreenState extends State<CartScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                // Feedback Text Field
                 TextField(
                   controller: _feedbackController,
                   decoration: const InputDecoration(
@@ -123,16 +119,15 @@ class _CartScreenState extends State<CartScreen> {
 
     final orderItems = cart.cartItems.map((item) {
       return {
-        "productId": item.id, // Assuming `id` is a property for the product ID
+        "productId": item.id, 
         "productName": item.name,
         "quantity": item.quantity,
         "price": double.parse(item.price),
-        "status": "Pending", // Default status for new orders
+        "status": "delivered",
       };
     }).toList();
 
     try {
-      // Save feedback in 'feedback' collection
       await feedbackCollection.add({
         "orderId": orderId,
         "customerName": _userName,
@@ -142,8 +137,6 @@ class _CartScreenState extends State<CartScreen> {
         "totalCost": totalPrice,
         "timestamp": Timestamp.now(),
       });
-
-      // Save order in 'orders' collection
       await ordersCollection.doc(orderId).set({
         "name": _userName,
         "price": cart.totalPrice.toString(),
@@ -156,8 +149,6 @@ class _CartScreenState extends State<CartScreen> {
         "timestamp": Timestamp.now(),
         "totalAmount": totalPrice,
       });
-
-      // Delete order and clear cart
       cart.clearCart();
       Navigator.of(context).pop();
 

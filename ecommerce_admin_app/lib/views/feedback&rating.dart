@@ -13,7 +13,6 @@ class FeedbackAndRating extends StatelessWidget {
         backgroundColor: Colors.deepPurple,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Listening to the 'feedback' collection from Firestore
         stream: FirebaseFirestore.instance.collection('feedback').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -28,7 +27,7 @@ class FeedbackAndRating extends StatelessWidget {
             return const Center(child: Text("No feedback available.", style: TextStyle(fontSize: 18, color: Colors.grey)));
           }
 
-          // Fetch feedback documents
+
           final feedbackList = snapshot.data!.docs;
 
           return ListView.builder(
@@ -37,14 +36,12 @@ class FeedbackAndRating extends StatelessWidget {
               final feedbackDoc = feedbackList[index];
               final feedbackData = feedbackDoc.data() as Map<String, dynamic>;
 
-              // Extract data from Firestore document
               final orderId = feedbackData['orderId'] ?? "Unknown Order ID";
               final customerName = feedbackData['customerName'] ?? "Unknown Customer";
               final rating = feedbackData['rating'] ?? 0.0;
               final feedbackText = feedbackData['feedback'] ?? "No feedback provided.";
               final details = feedbackData['details'];
 
-              // Safely extract 'details' fields
               String productName = 'N/A';
               int quantity = 0;
               double price = 0.0;
@@ -54,7 +51,6 @@ class FeedbackAndRating extends StatelessWidget {
                 quantity = details['quantity'] is int ? details['quantity'] : 0;
                 price = details['price'] is num ? details['price'].toDouble() : 0.0;
               } else if (details is List) {
-                // Handle case where details is incorrectly a list
                 print("Details is a List instead of Map: $details");
                 final firstItem = details.isNotEmpty ? details[0] : {};
                 if (firstItem is Map<String, dynamic>) {
@@ -76,10 +72,10 @@ class FeedbackAndRating extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Rating Section
+  
                       Row(
                         children: [
-                          // Star rating
+    
                           RatingBarIndicator(
                             rating: rating.toDouble(),
                             itemBuilder: (context, index) => const Icon(
@@ -91,7 +87,6 @@ class FeedbackAndRating extends StatelessWidget {
                             direction: Axis.horizontal,
                           ),
                           const SizedBox(width: 15),
-                          // Customer name
                           Text(
                             "$customerName",
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
@@ -99,7 +94,7 @@ class FeedbackAndRating extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Feedback Text
+             
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -112,7 +107,6 @@ class FeedbackAndRating extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      // Order and Product details
                       Text(
                         "Order ID: $orderId",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black54),
