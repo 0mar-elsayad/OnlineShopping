@@ -22,6 +22,9 @@ class _CartScreenState extends State<CartScreen> {
     _fetchUserName();
   }
 
+
+
+
   // Fetch user name from Firestore
   Future<void> _fetchUserName() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -34,6 +37,33 @@ class _CartScreenState extends State<CartScreen> {
       }
     }
   }
+
+Future<void> _updateSalesCollection(CartModelList cart) async {
+  final CollectionReference salesCollection = FirebaseFirestore.instance.collection('sales');
+  
+  for (var item in cart.cartItems) {
+    final productDoc = await salesCollection.doc(item.id).get();
+
+    if (productDoc.exists) {
+      // If the product exists, update the quantity
+      await salesCollection.doc(item.id).update({
+        'quantity': FieldValue.increment(item.quantity),
+      });
+    } else {
+      // If the product doesn't exist, add it to the collection with the specified document ID
+      await salesCollection.doc(item.id).set({
+        'productName': item.name,
+        'productId': item.id,
+        'quantity': item.quantity,
+        'price': double.parse(item.price),
+        'timestamp': Timestamp.now(),
+      });
+    }
+  }
+}
+
+
+  // Show feedback form dialog
   void _showFeedbackForm(BuildContext context, double totalPrice, CartModelList cart) {
     showDialog(
       context: context,
@@ -81,6 +111,7 @@ class _CartScreenState extends State<CartScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () async {
+                  await _updateSalesCollection(cart);    
                   await _submitFeedbackAndSaveOrder(
                       context, _feedbackController.text, _selectedRating, totalPrice, cart);
                 },
@@ -101,13 +132,14 @@ class _CartScreenState extends State<CartScreen> {
 
   // Submit feedback, save to Firestore, and save the order
   Future<void> _submitFeedbackAndSaveOrder(
-      BuildContext context, String feedback, int rating, double totalPrice, CartModelList cart) async {
-    final CollectionReference feedbackCollection =
-        FirebaseFirestore.instance.collection('feedback');
-    final CollectionReference ordersCollection =
-        FirebaseFirestore.instance.collection('orders');
+    BuildContext context, String feedback, int rating, double totalPrice, CartModelList cart) async {
+  final CollectionReference feedbackCollection =
+      FirebaseFirestore.instance.collection('feedback');
+  final CollectionReference ordersCollection =
+      FirebaseFirestore.instance.collection('orders');
 
-    final currentUser = FirebaseAuth.instance.currentUser;
+  final currentUser = FirebaseAuth.instance.currentUser;
+
 
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,7 +190,60 @@ class _CartScreenState extends State<CartScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Error: $e")));
     }
+
+
+  // Prepare order items
+  cart.cartItems.map((item) {
+    return {
+      "productId": item.id,
+      "productName": item.name,
+      "quantity": item.quantity,
+      "price": double.parse(item.price),
+    };
+  }).toList();
+
+  // Prepare quantity map per product ID
+  final Map<String, int> productQuantities = {};
+  for (var item in cart.cartItems) {
+    productQuantities[item.id] = item.quantity;
   }
+
+  try {
+    // Save feedback in 'feedback' collection
+    await feedbackCollection.add({
+      "orderId": orderId,
+      "customerName": _userName,
+      "rating": rating,
+      "feedback": feedback,
+      "details": orderItems,
+      "totalCost": totalPrice,
+      "timestamp": Timestamp.now(),
+    });
+
+    // Save order in 'orders' collection
+    await ordersCollection.doc(orderId).set({
+      "name": _userName,
+      "price": cart.totalPrice.toString(),
+      "productId": orderItems.map((item) => item["productId"]).toList(),
+      "productQuantities": productQuantities, // Added per product quantity
+      "quantity": orderItems.fold<int>(0, (sum, item) => sum + (item["quantity"] as int)),
+      "status": "Delivered",
+      "total": totalPrice,
+      "timestamp": Timestamp.now(),
+      "totalAmount": totalPrice,
+    });
+
+    // Clear cart and close the dialog
+    cart.clearCart();
+    Navigator.of(context).pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Order submitted, feedback saved, and cart cleared!")));
+  } catch (e) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Error: $e")));
+  }
+}
 
   // Cancel order and update status
   void _cancelOrder(CartModelList cart) {

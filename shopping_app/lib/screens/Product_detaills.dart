@@ -50,7 +50,7 @@ class _ProductDetailsState extends State<ProductDetails> {
   }
 
   // Add product to cart
- void addToCart() {
+void addToCart() async {
   final cart = Provider.of<CartModelList>(context, listen: false);
 
   // Check if selected quantity exceeds available stock
@@ -61,8 +61,8 @@ class _ProductDetailsState extends State<ProductDetails> {
     return;
   }
 
-  // Add the product to the cart
-  cart.add(CartModel(
+  // Add the product to the cart locally
+  final productToAdd = CartModel(
     id: widget.productId,
     name: productData?['name'] ?? 'No Name',
     price: productData?['price'].toString() ?? '0',
@@ -70,12 +70,40 @@ class _ProductDetailsState extends State<ProductDetails> {
         ? "data:image/png;base64,${productData!['imageBase64']}"
         : 'https://via.placeholder.com/150',
     quantity: selectedQuantity,
-    maxQuantity: productData?['quantity'] ?? 0, // Pass max stock from database
-  ));
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("Product added to cart!")),
+    maxQuantity: productData?['quantity'] ?? 0,
   );
+  cart.add(productToAdd);
+
+  // Calculate total for this product
+  final productTotal = selectedQuantity *
+      double.parse(productData?['price']?.toString() ?? '0');
+
+  try {
+    // Add an order to Firestore with product details
+    await FirebaseFirestore.instance.collection('orders').add({
+      "orderItems": [
+        {
+          "name": productData?['name'] ?? 'No Name',
+          "price": productData?['price']?.toString() ?? '0',
+          "productId": widget.productId,
+          "quantity": selectedQuantity,
+          "status": "Pending",
+          "total": productTotal,
+        }
+      ],
+      "status": "Pending", 
+      "timestamp": Timestamp.now(),
+      "totalAmount": productTotal,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Product added to cart and order created!")),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error creating order: $e")),
+    );
+  }
 }
 
 

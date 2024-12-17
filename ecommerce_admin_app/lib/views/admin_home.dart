@@ -14,21 +14,29 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
+  // Fetch total categories
   Future<int> _getTotalCategories() async {
     var snapshot = await FirebaseFirestore.instance.collection('categories').get();
-    return snapshot.size; // Returns the number of categories in the collection
+    return snapshot.size;
   }
 
+  // Fetch total products
   Future<int> _getTotalProducts() async {
     var snapshot = await FirebaseFirestore.instance.collection('products').get();
-    return snapshot.size; // Returns the number of products in the collection
+    return snapshot.size;
+  }
+
+  // Fetch total orders
+  Future<int> _getTotalOrders() async {
+    var snapshot = await FirebaseFirestore.instance.collection('orders').get();
+    return snapshot.size; // Returns the number of orders in the collection
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Admin Dashboard"),
+        title: const Text("Admin Dashboard"),
         actions: [
           IconButton(
             onPressed: () async {
@@ -36,7 +44,7 @@ class _AdminHomeState extends State<AdminHome> {
               await AuthService().logout();
               Navigator.pushNamedAndRemoveUntil(context, "/login", (route) => false);
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
@@ -45,9 +53,9 @@ class _AdminHomeState extends State<AdminHome> {
           children: [
             // Dashboard Summary
             Container(
-              height: 260,
-              padding: EdgeInsets.all(12),
-              margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              height: 300, // Adjusted height
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.deepPurple.shade100,
                 borderRadius: BorderRadius.circular(10),
@@ -57,7 +65,7 @@ class _AdminHomeState extends State<AdminHome> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // Dynamic Data for Total Categories and Products
+                    // Total Categories
                     FutureBuilder<int>(
                       future: _getTotalCategories(),
                       builder: (context, snapshot) {
@@ -70,6 +78,7 @@ class _AdminHomeState extends State<AdminHome> {
                         }
                       },
                     ),
+                    // Total Products
                     FutureBuilder<int>(
                       future: _getTotalProducts(),
                       builder: (context, snapshot) {
@@ -82,12 +91,19 @@ class _AdminHomeState extends State<AdminHome> {
                         }
                       },
                     ),
-                    // Static values from AdminProvider
-                    DashboardText(keyword: "Total Orders", value: "${value.totalOrders}"),
-                    DashboardText(keyword: "Order Not Shipped yet", value: "${value.orderPendingProcess}"),
-                    DashboardText(keyword: "Order Shipped", value: "${value.ordersOnTheWay}"),
-                    DashboardText(keyword: "Order Delivered", value: "${value.ordersDelivered}"),
-                    DashboardText(keyword: "Order Cancelled", value: "${value.ordersCancelled}"),
+                    // Total Orders
+                    FutureBuilder<int>(
+                      future: _getTotalOrders(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return DashboardText(keyword: "Total Orders", value: "Loading...");
+                        } else if (snapshot.hasError) {
+                          return DashboardText(keyword: "Total Orders", value: "Error");
+                        } else {
+                          return DashboardText(keyword: "Total Orders", value: "${snapshot.data}");
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -114,7 +130,7 @@ class _AdminHomeState extends State<AdminHome> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -133,7 +149,7 @@ class _AdminHomeState extends State<AdminHome> {
                     ],
                   ),
                   Row(
-                       mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       HomeButton(
                         onTap: () {
@@ -141,7 +157,6 @@ class _AdminHomeState extends State<AdminHome> {
                         },
                         name: "Best selling",
                       ),
-                      
                     ],
                   ),
                 ],

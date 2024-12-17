@@ -53,54 +53,122 @@ class _BestSellingChartState extends State<BestSellingChart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Best Selling Products")),
+      appBar: AppBar(
+        title: const Text("Best Selling Products"),
+        backgroundColor: Colors.deepPurpleAccent,
+      ),
       body: labels.isEmpty || dataValues.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: BarChart(
-                BarChartData(
-                  gridData: const FlGridData(show: false),
-                  barGroups: List.generate(labels.length, (index) {
-                    return BarChartGroupData(
-                      x: index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: dataValues[index].toDouble(),
-                          color: Colors.deepPurple,
-                          width: 16,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    );
-                  }),
-                  titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Text(
+                    "Top Selling Products",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurpleAccent,
                     ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          return SideTitleWidget(
-                            axisSide: meta.axisSide,
-                            child: Text(
-                              labels.length > index ? labels[index] : '',
-                              style: const TextStyle(fontSize: 10),
-                            ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: BarChart(
+                      BarChartData(
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: 10,
+                          getDrawingHorizontalLine: (value) {
+                            return FlLine(
+                              color: Colors.grey.withOpacity(0.3),
+                              strokeWidth: 1,
+                            );
+                          },
+                        ),
+                        barGroups: List.generate(labels.length, (index) {
+                          return BarChartGroupData(
+                            x: index,
+                            barRods: [
+                              BarChartRodData(
+                                toY: dataValues[index].toDouble(),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.deepPurpleAccent,
+                                    Colors.purpleAccent,
+                                  ],
+                                ),
+                                width: 22,
+                                borderRadius: BorderRadius.circular(6),
+                                backDrawRodData: BackgroundBarChartRodData(
+                                  show: true,
+                                  toY: dataValues.reduce((a, b) => a > b ? a : b)
+                                          .toDouble() +
+                                      10,
+                                  color: Colors.grey.withOpacity(0.1),
+                                ),
+                              ),
+                            ],
+                            showingTooltipIndicators: [0],
                           );
-                        },
+                        }),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 50,
+                              interval: 10,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 10),
+                                );
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  child: Text(
+                                    labels.length > index
+                                        ? _shortenText(labels[index], 8)
+                                        : '',
+                                    style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false)),
+                        ),
+                        borderData: FlBorderData(
+                          show: false,
+                        ),
                       ),
                     ),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  borderData: FlBorderData(show: false),
-                ),
+                ],
               ),
             ),
     );
+  }
+
+  /// Utility: Shortens product name for display
+  String _shortenText(String text, int maxLength) {
+    return text.length > maxLength
+        ? "${text.substring(0, maxLength)}..."
+        : text;
   }
 }
