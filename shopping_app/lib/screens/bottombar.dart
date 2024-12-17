@@ -12,42 +12,35 @@ class BottomBar extends StatefulWidget {
 }
 
 class _BottomBarState extends State<BottomBar> {
-  int selected = 0;
+  int selectedIndex = 0;
 
   // Pages corresponding to the BottomNavigationBar items
-  final List<Widget> pagelist = [
-    const HomeScreen(),
-    const SearchScreen(
-      productList: [],
-    ),
-    const CartScreen(),
-    const ProfileScreen()
+  final List<Widget> pages = [
+    const HomeScreen(),  // Home Page
+    const SearchScreen(),  // Search Page
+    const CartScreen(),   // Cart Page
+    const ProfileScreen() // Profile Page
   ];
 
-  void selectedPage(int index) {
-    print('User selected tab: $index'); // Logs the selected tab
+  // Function to handle tab changes
+  void _onItemTapped(int index) {
     setState(() {
-      selected = index;
+      selectedIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'Building BottomBar with selected index: $selected'); // Logs the selected index
     return Scaffold(
       body: IndexedStack(
-        index: selected,
-        children: pagelist.map((page) {
-          print('Rendering page: ${page.runtimeType}'); // Logs the page type
-          return page;
-        }).toList(),
+        index: selectedIndex,
+        children: pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selected,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: selectedPage,
+        currentIndex: selectedIndex,
+        selectedItemColor: Colors.blue, // Active tab color
+        unselectedItemColor: Colors.grey, // Inactive tab color
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

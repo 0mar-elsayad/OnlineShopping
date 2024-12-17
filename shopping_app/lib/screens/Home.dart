@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shopping_app/Widget/productwidget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../Widget/productwidget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,76 +11,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  final List<Map<String, String>> products = [
-    {
-      'name': 'iPhone 13',
-      'price': '3500',
-      'category': 'Mobiles',
-      'imageUrl':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtkScJu7uJWUM2HXMluAkmnXHMvWeSoepePg&s',
-    },
-    {
-      'name': 'MacBook Air',
-      'price': '1200',
-      'category': 'Laptops',
-      'imageUrl':
-          'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-midnight-select-202402?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1708367688034,'
-    },
-    {
-      'name': 'Apple Watch',
-      'price': '400',
-      'category': 'Watches',
-      'imageUrl':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc_mmycGKjssaK86jb1uoEGK2POQhHLtLWA&s',
-    },
-    {
-      'name': 'iPad Pro',
-      'price': '800',
-      'category': 'Mobiles',
-      'imageUrl':
-          'https://m.media-amazon.com/images/I/71vg3LNWBTL._AC_SL1500_.jpg'
-    },
-    {
-      'name': 'AirPods',
-      'price': '250',
-      'category': 'Watches',
-      'imageUrl':
-          'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83_AV2?wid=1144&hei=1144&fmt=jpeg&qlt=95&.v=1660803960086',
-    },
-  ];
-
-  List<Map<String, String>> filteredProducts = [];
-  double _totalPrice = 0.0;
-  late TabController _tabController;
+  late TabController _tabController; // Controller for TabBar
+  List<String> _categories = []; // List to hold dynamic categories
 
   @override
   void initState() {
     super.initState();
-    filteredProducts = products;
-    _tabController = TabController(length: 4, vsync: this);  // Number of tabs for categories
+    _fetchCategories();
   }
 
-  void _updateTotalPrice(double price) {
-    setState(() {
-      _totalPrice += price;
-    });
-  }
+  /// Fetch categories dynamically from Firestore
+  Future<void> _fetchCategories() async {
+    final categoriesSnapshot =
+        await FirebaseFirestore.instance.collection('categories').get();
 
-  void _decreaseTotalPrice(double price) {
     setState(() {
-      _totalPrice -= price;
-    });
-  }
-
-  void _filterProducts(String category) {
-    setState(() {
-      if (category == 'All') {
-        filteredProducts = products;
-      } else {
-        filteredProducts = products
-            .where((product) => product['category'] == category)
-            .toList();
-      }
+      // Add "All" as the default category
+      _categories = ['All', ...categoriesSnapshot.docs.map((doc) => doc['name']).toList()];
+      _tabController = TabController(length: _categories.length, vsync: this);
     });
   }
 
@@ -89,71 +39,84 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         appBar: AppBar(
           title: const Text('Home Screen'),
           backgroundColor: Colors.blueAccent,
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'All'),
-              Tab(text: 'Mobiles'),
-              Tab(text: 'Accessories'),
-              Tab(text: 'Laptops'),
-            ],
-            onTap: (index) {
-              // Update the product list based on selected tab
-              switch (index) {
-                case 0:
-                  _filterProducts('All');
-                  break;
-                case 1:
-                  _filterProducts('Mobiles');
-                  break;
-                case 2:
-                  _filterProducts('Watches');
-                  break;
-                case 3:
-                  _filterProducts('Laptops');
-                  break;
-              }
-            },
-          ),
+          bottom: _categories.isEmpty
+              ? null
+              : TabBar(
+                  controller: _tabController,
+                  isScrollable: true, // Allows dynamic tabs to scroll if needed
+                  tabs: _categories.map((category) => Tab(text: category)).toList(),
+                ),
         ),
-        body: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Product Grid Section
-            Expanded(
-              child: TabBarView(
+        body: _categories.isEmpty
+            ? const Center(child: CircularProgressIndicator()) // Show loader while categories load
+            : TabBarView(
                 controller: _tabController,
-                children: [
-                  // Tab 1: Show all products
-                  _buildProductGrid(filteredProducts),
-                  // Tab 2: Show Mobiles
-                  _buildProductGrid(products.where((product) => product['category'] == 'Mobiles').toList()),
-                  // Tab 3: Show Watches
-                  _buildProductGrid(products.where((product) => product['category'] == 'Watches').toList()),
-                  // Tab 4: Show Laptops
-                  _buildProductGrid(products.where((product) => product['category'] == 'Laptops').toList()),
-                ],
+                children: _categories.map((category) {
+                  return _buildProductList(category: category);
+                }).toList(),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildProductGrid(List<Map<String, String>> products) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 4.5 / 7,
-      children: products.map((product) {
-        return Productwidget(
-          name: product['name']!,
-          price: product['price']!,
-          imageUrl: product['imageUrl']!,
+  /// Build product list filtered by category
+   Widget _buildProductList({required String category}) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("No products available."));
+        }
+
+        // Filter products based on category and quantity > 0
+        final filteredProducts = snapshot.data!.docs.where((product) {
+          final productCategory = product['category'] ?? '';
+          final productQuantity = product['quantity'] ?? 0;
+          return (category == 'All' || productCategory == category) && productQuantity > 0;
+        }).toList();
+
+        if (filteredProducts.isEmpty) {
+          return const Center(child: Text("No products available."));
+        }
+
+        return GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 4.5 / 7,
+          ),
+          itemCount: filteredProducts.length,
+          itemBuilder: (context, index) {
+            final product = filteredProducts[index];
+            final productName = product['name'] ?? 'No Name';
+            final productPrice = product['price']?.toString() ?? '0';
+            final productQuantity = product['quantity'] ?? 0;
+            final imageBase64 = product['imageBase64'];
+
+            // Decode Base64 image or use placeholder
+            final productImageUrl = imageBase64 != null
+                ? "data:image/png;base64,$imageBase64"
+                : 'https://via.placeholder.com/150';
+
+            return Productwidget(
+              id: product.id, // Pass product ID
+              name: productName,
+              price: productPrice,
+              imageUrl: productImageUrl,
+              maxQuantity: productQuantity, // Limit user selection to database quantity
+            );
+          },
         );
-      }).toList(),
+      },
     );
   }
 }
