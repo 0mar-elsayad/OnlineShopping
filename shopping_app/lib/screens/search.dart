@@ -1,77 +1,120 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import '../Widget/productwidget.dart';
 
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
+
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-
-final List<Map<String, String>> products = [
-  {'name': 'iPhone 13', 'price': '3500'},
-  {'name': 'MacBook Air', 'price': '1200'},
-  {'name': 'Apple Watch', 'price': '400'},
-  {'name': 'iPad Pro', 'price': '800'},
-  {'name': 'AirPods', 'price': '250'},
-];
-
-
-  List<Map<String, String>> filteredProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-
-    filteredProducts = List.from(products);
-  }
+  String searchQuery = ""; // User input for search
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Search Screen'),
+          title: const Text('Search Products'),
+          backgroundColor: Colors.blueAccent,
         ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-
+              // Search bar input
               TextField(
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   hintText: 'Search for a product',
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue),
+                    borderSide: const BorderSide(color: Colors.blue),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey),
+                    borderSide: const BorderSide(color: Colors.grey),
                   ),
                 ),
-                onChanged: (value) {
-
+                onChanged: (query) {
                   setState(() {
-                    filteredProducts = products.where((product) {
-                      return product['name']!
-                          .toLowerCase()
-                          .contains(value.toLowerCase());
-                    }).toList();
+                    searchQuery = query; // Update search query
                   });
                 },
               ),
-
+              const SizedBox(height: 10),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 4.5 / 7,
-                  children: filteredProducts.map((product) {
-                    return Productwidget( );
-                  }).toList(),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('products')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("No products available."));
+                    }
+
+                    // Filter products based on search query and quantity > 0
+                    final filteredProducts = snapshot.data!.docs.where((doc) {
+                      final name = doc['name']?.toString().toLowerCase() ?? '';
+                      final quantity = doc['quantity'] ?? 0;
+                      return name.contains(searchQuery.toLowerCase()) &&
+                             quantity > 0; // Exclude products with quantity = 0
+                    }).toList();
+
+                    if (filteredProducts.isEmpty) {
+                      return const Center(child: Text("No matching products found."));
+                    }
+
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 4.5 / 7,
+                      ),
+                      itemCount: filteredProducts.length,
+                      itemBuilder: (context, index) {
+                        final product = filteredProducts[index];
+
+                        // Safely access Firestore fields
+                        final productName = product['name'] ?? 'No Name';
+                        final productPrice = product['price']?.toString() ?? '0';
+                        final productImageBase64 = product['imageBase64'];
+
+                        // Decode Base64 image if available, otherwise use placeholder
+                        final productImage = productImageBase64 != null
+                            ? Image.memory(
+                                base64Decode(productImageBase64),
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                'https://via.placeholder.com/150', // Placeholder image
+                                fit: BoxFit.cover,
+                              );
+
+                        return Productwidget(
+                          id: product.id,
+                          name: productName,
+                          price: productPrice,
+                          imageUrl: productImageBase64 != null
+                              ? "data:image/png;base64,$productImageBase64"
+                              : 'https://via.placeholder.com/150',
+                          maxQuantity: product['quantity'] ?? 0,
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],
@@ -81,123 +124,3 @@ final List<Map<String, String>> products = [
     );
   }
 }
-
-//  import 'package:flutter/material.dart';
-// import 'package:speech_to_text/speech_to_text.dart' as stt;
-// import '../Widget/productwidget.dart';
-
-// class SearchScreen extends StatefulWidget {
-//   @override
-//   _SearchScreenState createState() => _SearchScreenState();
-// }
-
-// class _SearchScreenState extends State<SearchScreen> {
-//   final List<Map<String, String>> products = [
-//     {'name': 'iPhone 13', 'price': '3500', 'image': 'https://www.dslr-zone.com/wp-content/uploads/2021/10/1-2.jpeg'},
-//     {'name': 'MacBook Air', 'price': '1200', 'image': 'https://example.com/image-not-found.jpg'},
-//     {'name': 'Apple Watch', 'price': '400', 'image': 'https://example.com/image-not-found.jpg'},
-//     {'name': 'iPad Pro', 'price': '800', 'image': 'https://www.dslr-zone.com/wp-content/uploads/2021/10/1-2.jpeg'},
-//   ];
-
-//   List<Map<String, String>> filteredProducts = [];
-//   final TextEditingController _searchController = TextEditingController();
-//   late stt.SpeechToText _speech; // Speech-to-text instance
-//   bool _isListening = false;
-//   String _voiceInput = "";
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     filteredProducts = List.from(products);
-//     _speech = stt.SpeechToText();
-//   }
-
-//   void _startListening() async {
-//     bool available = await _speech.initialize();
-//     if (available) {
-//       setState(() {
-//         _isListening = true;
-//       });
-//       _speech.listen(onResult: (result) {
-//         setState(() {
-//           _voiceInput = result.recognizedWords;
-//           _searchController.text = _voiceInput;
-//           _filterProducts(_voiceInput);
-//         });
-//       });
-//     }
-//   }
-
-//   void _stopListening() {
-//     _speech.stop();
-//     setState(() {
-//       _isListening = false;
-//     });
-//   }
-
-//   void _filterProducts(String query) {
-//     setState(() {
-//       filteredProducts = products.where((product) {
-//         return product['name']!.toLowerCase().contains(query.toLowerCase());
-//       }).toList();
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Scaffold(
-//         appBar: AppBar(
-//           title: Text('Search Screen'),
-//         ),
-//         body: Padding(
-//           padding: const EdgeInsets.all(8.0),
-//           child: Column(
-//             children: [
-//               // Search Field with Voice Search Button
-//               Row(
-//                 children: [
-//                   Expanded(
-//                     child: TextField(
-//                       controller: _searchController,
-//                       decoration: InputDecoration(
-//                         prefixIcon: Icon(Icons.search),
-//                         hintText: 'Search for a product',
-//                         focusedBorder: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                           borderSide: BorderSide(color: Colors.blue),
-//                         ),
-//                         enabledBorder: OutlineInputBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                           borderSide: BorderSide(color: Colors.grey),
-//                         ),
-//                       ),
-//                       onChanged: _filterProducts,
-//                     ),
-//                   ),
-//                   IconButton(
-//                     icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-//                     color: _isListening ? Colors.red : Colors.grey,
-//                     onPressed: _isListening ? _stopListening : _startListening,
-//                   ),
-//                 ],
-//               ),
-//               // Product Grid
-//               Expanded(
-//                 child: GridView.count(
-//                   crossAxisCount: 2,
-//                   crossAxisSpacing: 10,
-//                   mainAxisSpacing: 10,
-//                   childAspectRatio: 4.5 / 7,
-//                   children: filteredProducts.map((product) {
-//                     return Productwidget( );
-//                   }).toList(),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }

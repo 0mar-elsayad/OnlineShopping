@@ -16,15 +16,14 @@ class ListtileWidget extends StatelessWidget {
     return ListTile(
       title: Text(
         title,
-        style: TextStyle(fontSize: 25, fontWeight: (FontWeight.bold)),
+        style: const TextStyle(fontSize: 25, fontWeight: (FontWeight.bold)),
       ),
       leading: Icon(icon),
       trailing: IconButton(
         onPressed: () {
-          print("Hello World");
           function();
         },
-        icon: Icon(Icons.arrow_forward_ios),
+        icon: const Icon(Icons.arrow_forward_ios),
       ),
     );
   }
