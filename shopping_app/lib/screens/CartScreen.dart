@@ -22,6 +22,9 @@ class _CartScreenState extends State<CartScreen> {
     _fetchUserName();
   }
 
+
+
+
   // Fetch user name from Firestore
   Future<void> _fetchUserName() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -34,6 +37,32 @@ class _CartScreenState extends State<CartScreen> {
       }
     }
   }
+
+  // Function to update the sales collection
+Future<void> _updateSalesCollection(CartModelList cart) async {
+  final CollectionReference salesCollection = FirebaseFirestore.instance.collection('sales');
+  
+  for (var item in cart.cartItems) {
+    final productDoc = await salesCollection.doc(item.id).get();
+
+    if (productDoc.exists) {
+      // If the product exists, update the quantity
+      await salesCollection.doc(item.id).update({
+        'quantity': FieldValue.increment(item.quantity),
+      });
+    } else {
+      // If the product doesn't exist, add it to the collection with the specified document ID
+      await salesCollection.doc(item.id).set({
+        'productName': item.name,
+        'productId': item.id,
+        'quantity': item.quantity,
+        'price': double.parse(item.price),
+        'timestamp': Timestamp.now(),
+      });
+    }
+  }
+}
+
 
   // Show feedback form dialog
   void _showFeedbackForm(BuildContext context, double totalPrice, CartModelList cart) {
@@ -85,6 +114,7 @@ class _CartScreenState extends State<CartScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () async {
+                  await _updateSalesCollection(cart);    
                   await _submitFeedbackAndSaveOrder(
                       context, _feedbackController.text, _selectedRating, totalPrice, cart);
                 },
