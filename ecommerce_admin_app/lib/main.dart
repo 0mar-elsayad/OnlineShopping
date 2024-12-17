@@ -3,18 +3,14 @@ import 'package:ecommerce_admin_app/firebase_options.dart';
 import 'package:ecommerce_admin_app/provider/admin_provider.dart';
 import 'package:ecommerce_admin_app/views/admin_home.dart';
 import 'package:ecommerce_admin_app/views/categories_page.dart';
-//import 'package:ecommerce_admin_app/views/coupons.dart';
+import 'package:ecommerce_admin_app/views/feedback&rating.dart';
+import 'package:ecommerce_admin_app/views/BestSellingChart.dart';
 import 'package:ecommerce_admin_app/views/login.dart';
-/*import 'package:ecommerce_admin_app/views/modify_product.dart';
-import 'package:ecommerce_admin_app/views/modify_promo.dart';
-import 'package:ecommerce_admin_app/views/orders_page.dart';*/
 import 'package:ecommerce_admin_app/views/products_page.dart';
-//import 'package:ecommerce_admin_app/views/promo_banners_page.dart';
+import 'package:ecommerce_admin_app/views/orders_page.dart';
 import 'package:ecommerce_admin_app/views/signup.dart';
-//import 'package:ecommerce_admin_app/views/view_product.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -36,6 +32,7 @@ class MyApp extends StatelessWidget {
       create: (context) => AdminProvider(),
       builder: (context, child) => MaterialApp(
         title: 'Ecommerce Admin App',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           // This is the theme of your application.
           //
@@ -62,12 +59,12 @@ class MyApp extends StatelessWidget {
           "/home": (context) => AdminHome(),
           "/category": (context) => CategoriesPage(),
           "/products": (context) => ProductsPage(),
-          /*"/add_product": (context) => ModifyProduct(),
-          "/view_product": (context) => ViewProduct(),
-          "/promos": (context) => PromoBannersPage(),
+          "/orders": (context) => OrdersPage(),
+          "/feedback & rating": (context) => FeedbackAndRating(),
+          "/chart": (context) => BestSellingChart(),
+         /* "/promos": (context) => PromoBannersPage(),
           "/update_promo": (context) => ModifyPromo(),
           "/coupons": (context) => CouponsPage(),
-          "/orders": (context) => OrdersPage(),
           "/view_order": (context) => ViewOrder()*/
         },
       ),

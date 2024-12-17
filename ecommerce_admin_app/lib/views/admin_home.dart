@@ -116,7 +116,7 @@ class _AdminHomeState extends State<AdminHome> {
                   ),
                   SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       HomeButton(
                         onTap: () {
@@ -124,6 +124,24 @@ class _AdminHomeState extends State<AdminHome> {
                         },
                         name: "Categories",
                       ),
+                      HomeButton(
+                        onTap: () {
+                          Navigator.pushNamed(context, "/feedback & rating");
+                        },
+                        name: "feedback & rating",
+                      ),
+                    ],
+                  ),
+                  Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HomeButton(
+                        onTap: () {
+                          Navigator.pushNamed(context, "/chart");
+                        },
+                        name: "Best selling",
+                      ),
+                      
                     ],
                   ),
                 ],

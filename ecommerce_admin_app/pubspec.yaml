@@ -41,7 +41,7 @@ dependencies:
   firebase_storage: ^12.3.7
   image_picker: ^1.1.2
   provider: ^6.1.2
-
+  fl_chart: ^0.63.0
     # HTTP for Cloudinary requests
   http: ^1.1.0
 
